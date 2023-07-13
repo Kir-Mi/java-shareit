@@ -70,7 +70,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> search(String text) {
-        if (text == null) {
+        if (text == null || text.isEmpty() || text.isBlank()) {
             return Collections.emptyList();
         }
         List<Item> items = itemStorage.search(text);
