@@ -1,11 +1,13 @@
 package ru.practicum.shareit.item.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @Data
+@AllArgsConstructor
 public class ItemDto {
     private int id;
     @NotNull
@@ -17,10 +19,4 @@ public class ItemDto {
     @NotNull
     private Boolean available;
 
-    public ItemDto(int id, String name, String description, Boolean available) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.available = available;
-    }
 }
