@@ -1,19 +1,15 @@
 package ru.practicum.shareit.item.mapper;
 
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-@Component
-@RequiredArgsConstructor
+@UtilityClass
 public class ItemMapper {
-
-    private final UserRepository userRepository;
 
     public ItemDto toItemDto(Item item) {
         return ItemDto.builder()
@@ -25,7 +21,7 @@ public class ItemMapper {
                 .build();
     }
 
-    public Item toItem(ItemDto itemDto) {
+    public Item toItem(ItemDto itemDto, UserRepository userRepository) {
         User owner = userRepository.findById(itemDto.getOwnerId())
                 .orElseThrow(() -> {
                     String msg = String.format("User with ID=%d not found.", itemDto.getOwnerId());

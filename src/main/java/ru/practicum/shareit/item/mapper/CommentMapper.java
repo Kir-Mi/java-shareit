@@ -1,8 +1,7 @@
 package ru.practicum.shareit.item.mapper;
 
-import lombok.AllArgsConstructor;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
@@ -21,12 +20,8 @@ import java.util.function.Predicate;
 
 import static ru.practicum.shareit.booking.model.BookingStatus.APPROVED;
 
-@AllArgsConstructor
-@Component
+@UtilityClass
 public class CommentMapper {
-
-    private final UserRepository userRepository;
-    private final ItemRepository itemRepository;
 
     public CommentResponse toDto(Comment domain) {
         return CommentResponse.builder()
@@ -37,7 +32,7 @@ public class CommentMapper {
                 .build();
     }
 
-    public Comment toComment(CommentRequest dto) {
+    public Comment toComment(CommentRequest dto, UserRepository userRepository, ItemRepository itemRepository) {
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден", HttpStatus.NOT_FOUND));
         Item item = itemRepository.findItemByIdWithBookingsFetched(dto.getItemId())

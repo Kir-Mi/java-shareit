@@ -1,8 +1,7 @@
 package ru.practicum.shareit.booking.mapper;
 
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.dto.BookerResponse;
 import ru.practicum.shareit.booking.dto.BookingRequest;
 import ru.practicum.shareit.booking.dto.BookingResponse;
@@ -14,11 +13,8 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-@Component
-@RequiredArgsConstructor
+@UtilityClass
 public class BookingMapper {
-    private final UserRepository userRepository;
-    private final ItemRepository itemRepository;
 
     public BookingResponse mapToDto(Booking domain) {
         return BookingResponse.builder()
@@ -36,7 +32,7 @@ public class BookingMapper {
                 .build();
     }
 
-    public Booking mapToDomain(BookingRequest dto) {
+    public Booking mapToDomain(BookingRequest dto, UserRepository userRepository, ItemRepository itemRepository) {
         User booker = userRepository.findById(dto.getBookerId())
                 .orElseThrow(() -> {
                     String msg = String.format("User with ID=%d not found.", dto.getBookerId());

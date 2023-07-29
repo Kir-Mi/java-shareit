@@ -31,15 +31,14 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-    private final ItemMapper itemMapper;
     private final CommentService commentService;
 
     @Override
     public ItemDto create(int userId, ItemDto itemDto) {
         itemDto.setOwnerId(userId);
-        Item item = itemMapper.toItem(itemDto);
+        Item item = ItemMapper.toItem(itemDto, userRepository);
         Item saved = itemRepository.save(item);
-        return itemMapper.toItemDto(saved);
+        return ItemMapper.toItemDto(saved);
     }
 
     @Override
@@ -49,13 +48,13 @@ public class ItemServiceImpl implements ItemService {
         checkItemBelongsToUser(toUpdate, userId);
         updateItem(itemDto, toUpdate);
         itemRepository.save(toUpdate);
-        return itemMapper.toItemDto(toUpdate);
+        return ItemMapper.toItemDto(toUpdate);
     }
 
     @Override
     public ItemDto getItemById(int userId, int itemId) {
         Item item = findItemBookingsFetchedOrThrow(itemId);
-        ItemDto dto = itemMapper.toItemDto(item);
+        ItemDto dto = ItemMapper.toItemDto(item);
         setCommentsToDtoFromDb(dto);
         setBookings(dto, item, userId);
         return dto;
@@ -77,7 +76,7 @@ public class ItemServiceImpl implements ItemService {
         List<Item> items = itemRepository.search(text);
         return items.stream()
                 .filter(Item::getAvailable)
-                .map(itemMapper::toItemDto)
+                .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
@@ -150,7 +149,7 @@ public class ItemServiceImpl implements ItemService {
                                          Map<Integer, List<CommentResponse>> itemIdToComments) {
         return idToItem.values().stream()
                 .map(i -> {
-                    ItemDto dto = itemMapper.toItemDto(i);
+                    ItemDto dto = ItemMapper.toItemDto(i);
                     setBookings(dto, i, i.getOwner().getId());
                     addCommentsToDtoFromMem(dto, itemIdToComments);
                     return dto;

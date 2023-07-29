@@ -23,26 +23,25 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
-    private final UserMapper userMapper;
 
     @Override
     public List<UserDto> findAll() {
         return userRepository.findAll().stream()
-                .map(userMapper::toUserDto)
+                .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public UserDto getUserById(int id) {
         User user = findByIdOrThrow(id);
-        return userMapper.toUserDto(user);
+        return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto create(UserDto userDto) {
         try {
-            User saved = userRepository.save(userMapper.toUser(userDto));
-            return userMapper.toUserDto(saved);
+            User saved = userRepository.save(UserMapper.toUser(userDto));
+            return UserMapper.toUserDto(saved);
         } catch (DataIntegrityViolationException ex) {
             String msg = "Email уже существует";
             throw new ValidationException(msg, HttpStatus.CONFLICT);
@@ -60,7 +59,7 @@ public class UserServiceImpl implements UserService {
                 toUpdate.setEmail(userDto.getEmail());
             }
             userRepository.saveAndFlush(toUpdate);
-            return userMapper.toUserDto(toUpdate);
+            return UserMapper.toUserDto(toUpdate);
         } catch (DataIntegrityViolationException ex) {
             String msg = "Email уже существует";
             throw new ValidationException(msg, HttpStatus.CONFLICT);

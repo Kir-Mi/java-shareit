@@ -7,6 +7,8 @@ import ru.practicum.shareit.item.dto.CommentResponse;
 import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.repository.CommentRepository;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
 import java.util.Map;
@@ -17,19 +19,20 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
-    private final CommentMapper mapper;
+    private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     @Override
     public CommentResponse saveComment(CommentRequest commentRequest) {
-        Comment saved = commentRepository.save(mapper.toComment(commentRequest));
-        return mapper.toDto(saved);
+        Comment saved = commentRepository.save(CommentMapper.toComment(commentRequest, userRepository, itemRepository));
+        return CommentMapper.toDto(saved);
     }
 
     @Override
     public List<CommentResponse> getCommentsOfItem(Integer itemId) {
         return commentRepository.findAllByItem_Id(itemId)
                 .stream()
-                .map(mapper::toDto)
+                .map(CommentMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -38,6 +41,6 @@ public class CommentServiceImpl implements CommentService {
         return commentRepository.findAllByItems(itemIds)
                 .stream()
                 .collect(Collectors.groupingBy(c -> c.getItem().getId(),
-                        Collectors.mapping(mapper::toDto, Collectors.toList())));
+                        Collectors.mapping(CommentMapper::toDto, Collectors.toList())));
     }
 }

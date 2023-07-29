@@ -11,6 +11,8 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,8 +24,9 @@ import static ru.practicum.shareit.booking.model.BookingStatus.*;
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
-    private final BookingMapper mapper;
     private final BookingDataValidator bookingDataValidator;
+    private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     @Override
     public BookingResponse createBooking(BookingRequest dto) {
@@ -32,11 +35,11 @@ public class BookingServiceImpl implements BookingService {
             throw new ValidationException("Некорретные данные бронирования", HttpStatus.BAD_REQUEST);
         }
         dto.setStatus(WAITING);
-        Booking booking = mapper.mapToDomain(dto);
+        Booking booking = BookingMapper.mapToDomain(dto, userRepository, itemRepository);
         bookingDataValidator.throwIfItemNotAvailable(dto.getItemId(), booking);
         bookingDataValidator.throwIfBookerIsItemOwner(dto.getBookerId(), booking);
         Booking saved = bookingRepository.save(booking);
-        return mapper.mapToDto(saved);
+        return BookingMapper.mapToDto(saved);
     }
 
     @Override
@@ -51,7 +54,7 @@ public class BookingServiceImpl implements BookingService {
             booking.setStatus(REJECTED);
         }
         bookingRepository.save(booking);
-        return mapper.mapToDto(booking);
+        return BookingMapper.mapToDto(booking);
     }
 
     @Override
@@ -60,7 +63,7 @@ public class BookingServiceImpl implements BookingService {
         Integer bookerId = booking.getBooker().getId();
         Integer ownerId = booking.getItem().getOwner().getId();
         if (userId.equals(bookerId) || userId.equals(ownerId)) {
-            return mapper.mapToDto(booking);
+            return BookingMapper.mapToDto(booking);
         } else {
             String msg = String.format("У пользователя id=%d нет прав доступа", userId);
             throw new NotFoundException(msg, HttpStatus.NOT_FOUND);
@@ -131,7 +134,7 @@ public class BookingServiceImpl implements BookingService {
 
     private List<BookingResponse> convertResponse(List<Booking> bookings) {
         return bookings.stream()
-                .map(mapper::mapToDto)
+                .map(BookingMapper::mapToDto)
                 .collect(Collectors.toList());
     }
 
