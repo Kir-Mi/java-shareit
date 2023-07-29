@@ -42,7 +42,7 @@ public class BookingMapper {
                     String msg = String.format("User with ID=%d not found.", dto.getBookerId());
                     return new NotFoundException(msg, HttpStatus.NOT_FOUND);
                 });
-        Item item = itemRepository.findByIdOwnerFetched(dto.getItemId())
+        Item item = itemRepository.findById(dto.getItemId())
                 .orElseThrow(() -> {
                     String msg = String.format("Item with ID=%d not found.", dto.getItemId());
                     return new NotFoundException(msg, HttpStatus.NOT_FOUND);

@@ -14,9 +14,6 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
             "   or upper(i.description) like upper(concat('%', ?1, '%'))")
     List<Item> search(String text);
 
-    @Query("select i from Item i join fetch i.owner o where i.id = :itemId")
-    Optional<Item> findByIdOwnerFetched(@Param("itemId") Integer itemId);
-
     List<Item> findAllByOwnerIdOrderByIdAsc(Integer id);
 
     @Query("select distinct i from Item i left join fetch i.bookings b where i.id = :itemId")
