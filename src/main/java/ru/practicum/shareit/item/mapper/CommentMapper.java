@@ -3,15 +3,12 @@ package ru.practicum.shareit.item.mapper;
 import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.dto.CommentRequest;
 import ru.practicum.shareit.item.dto.CommentResponse;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -32,11 +29,7 @@ public class CommentMapper {
                 .build();
     }
 
-    public Comment toComment(CommentRequest dto, UserRepository userRepository, ItemRepository itemRepository) {
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден", HttpStatus.NOT_FOUND));
-        Item item = itemRepository.findItemByIdWithBookingsFetched(dto.getItemId())
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден", HttpStatus.NOT_FOUND));
+    public Comment toComment(CommentRequest dto, User user, Item item) {
         checkUserBookedItem(dto, item);
         return Comment.builder()
                 .text(dto.getText())

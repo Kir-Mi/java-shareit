@@ -11,7 +11,9 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -34,8 +36,18 @@ public class BookingServiceImpl implements BookingService {
                 dto.getStart().equals(dto.getEnd())) {
             throw new ValidationException("Некорретные данные бронирования", HttpStatus.BAD_REQUEST);
         }
+        User booker = userRepository.findById(dto.getBookerId())
+                .orElseThrow(() -> {
+                    String msg = String.format("User with ID=%d not found.", dto.getBookerId());
+                    return new NotFoundException(msg, HttpStatus.NOT_FOUND);
+                });
+        Item item = itemRepository.findById(dto.getItemId())
+                .orElseThrow(() -> {
+                    String msg = String.format("Item with ID=%d not found.", dto.getItemId());
+                    return new NotFoundException(msg, HttpStatus.NOT_FOUND);
+                });
         dto.setStatus(WAITING);
-        Booking booking = BookingMapper.mapToDomain(dto, userRepository, itemRepository);
+        Booking booking = BookingMapper.mapToDomain(dto, booker, item);
         bookingDataValidator.throwIfItemNotAvailable(dto.getItemId(), booking);
         bookingDataValidator.throwIfBookerIsItemOwner(dto.getBookerId(), booking);
         Booking saved = bookingRepository.save(booking);

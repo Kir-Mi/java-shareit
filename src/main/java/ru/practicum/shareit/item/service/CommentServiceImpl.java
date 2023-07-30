@@ -1,13 +1,17 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.item.dto.CommentRequest;
 import ru.practicum.shareit.item.dto.CommentResponse;
 import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
@@ -24,7 +28,11 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentResponse saveComment(CommentRequest commentRequest) {
-        Comment saved = commentRepository.save(CommentMapper.toComment(commentRequest, userRepository, itemRepository));
+        User user = userRepository.findById(commentRequest.getUserId())
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден", HttpStatus.NOT_FOUND));
+        Item item = itemRepository.findItemByIdWithBookingsFetched(commentRequest.getItemId())
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден", HttpStatus.NOT_FOUND));
+        Comment saved = commentRepository.save(CommentMapper.toComment(commentRequest, user, item));
         return CommentMapper.toDto(saved);
     }
 
