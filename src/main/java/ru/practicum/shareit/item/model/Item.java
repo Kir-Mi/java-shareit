@@ -1,24 +1,35 @@
 package ru.practicum.shareit.item.model;
 
-import lombok.Data;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.user.model.User;
 
-import javax.validation.constraints.NotEmpty;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "items")
+@Builder
 public class Item {
-    @NonNull
-    private int id;
-    @NonNull
-    @NotEmpty(message = "Имя не может быть пустым")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+    @Column(name = "name", nullable = false)
     private String name;
-    @NonNull
-    @NotEmpty(message = "Описание не может быть пустым")
+    @Column(name = "description", nullable = false)
     private String description;
-    @NonNull
+    @Column(name = "is_available", nullable = false)
     private Boolean available;
-    private int owner;
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "item")
+    private List<Booking> bookings = new ArrayList<>();
 
 }

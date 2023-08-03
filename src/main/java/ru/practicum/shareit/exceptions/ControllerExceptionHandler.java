@@ -25,6 +25,6 @@ public class ControllerExceptionHandler {
 
         return ResponseEntity
                 .status(responseStatus)
-                .body(Map.of("errorMessage", ex.getErrorMessage()));
+                .body(Map.of("error", ex.getErrorMessage()));
     }
 }

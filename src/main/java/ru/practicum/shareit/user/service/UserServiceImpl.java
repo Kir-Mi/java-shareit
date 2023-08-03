@@ -1,15 +1,16 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
-import ru.practicum.shareit.item.storage.ItemStorage;
+import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserStorage;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import javax.validation.*;
 import java.util.List;
@@ -20,76 +21,62 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserStorage userStorage;
-    private final ItemStorage itemStorage;
+    private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     @Override
     public List<UserDto> findAll() {
-        List<User> users = userStorage.findAll();
-        return users.stream()
+        return userRepository.findAll().stream()
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public UserDto getUserById(int id) {
-        User user = userStorage.getUserById(id);
-        if (user == null) {
-            throw new NotFoundException("Пользователь не найден", HttpStatus.NOT_FOUND);
-        }
+        User user = findByIdOrThrow(id);
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto create(UserDto userDto) {
-        if (isEmailExist(userDto.getEmail())) {
-            throw new ValidationException("Пользователь с таким email уже существует", HttpStatus.CONFLICT);
+        try {
+            User saved = userRepository.save(UserMapper.toUser(userDto));
+            return UserMapper.toUserDto(saved);
+        } catch (DataIntegrityViolationException ex) {
+            String msg = "Email уже существует";
+            throw new ValidationException(msg, HttpStatus.CONFLICT);
         }
-        User user = userStorage.create(UserMapper.toUser(userDto));
-        itemStorage.addNewUserToMap(user.getId());
-        return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto update(int userId, UserDto userDto) {
-        if (!userStorage.isUserExist(userId)) {
-            throw new NotFoundException("Пользователь не найден", HttpStatus.NOT_FOUND);
-        }
-        UserDto updatedUserDto = getUserById(userId);
-
-        if (validateUserEmail(userDto)) {
-            if (!userDto.getEmail().equals(updatedUserDto.getEmail())) {
-                if (isEmailExist(userDto.getEmail())) {
-                    throw new ValidationException("Пользователь с таким email уже существует", HttpStatus.CONFLICT);
-                }
+        User toUpdate = findByIdOrThrow(userId);
+        try {
+            if (userDto.getName() != null) {
+                toUpdate.setName(userDto.getName());
             }
+            if (userDto.getEmail() != null) {
+                toUpdate.setEmail(userDto.getEmail());
+            }
+            userRepository.saveAndFlush(toUpdate);
+            return UserMapper.toUserDto(toUpdate);
+        } catch (DataIntegrityViolationException ex) {
+            String msg = "Email уже существует";
+            throw new ValidationException(msg, HttpStatus.CONFLICT);
         }
-
-        String email = userDto.getEmail();
-        if (!(email == null)) {
-            updatedUserDto.setEmail(email);
-        }
-        if (userDto.getName() != null) {
-            updatedUserDto.setName(userDto.getName());
-        }
-        userStorage.update(userId, UserMapper.toUser(updatedUserDto));
-        return updatedUserDto;
     }
 
     @Override
     public void delete(int id) {
-        itemStorage.deleteUserFromMap(id);
-        userStorage.delete(id);
+        userRepository.deleteById(id);
     }
 
-    private boolean isEmailExist(String email) {
-        List<UserDto> users = findAll();
-        for (UserDto user : users) {
-            if (user.getEmail().equals(email)) {
-                return true;
-            }
-        }
-        return false;
+    private User findByIdOrThrow(Integer userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    String msg = String.format("Пользователь ID=%d не найден", userId);
+                    return new NotFoundException(msg, HttpStatus.NOT_FOUND);
+                });
     }
 
     private boolean validateUserEmail(UserDto userDto) {
