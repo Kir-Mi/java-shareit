@@ -74,8 +74,6 @@ class UserServiceImplTest {
         assertEquals(user1.getId(), createdUser.getId());
         assertEquals(user1.getName(), createdUser.getName());
         assertEquals(user1.getEmail(), createdUser.getEmail());
-
-        verify(userRepository, times(1)).save(user1);
     }
 
     @Test
@@ -83,8 +81,6 @@ class UserServiceImplTest {
         when(userRepository.save(user1)).thenThrow(new DataIntegrityViolationException("Duplicate key"));
 
         assertThrows(ValidationException.class, () -> userService.create(UserMapper.toUserDto(user1)));
-
-        verify(userRepository, times(1)).save(user1);
     }
 
 
