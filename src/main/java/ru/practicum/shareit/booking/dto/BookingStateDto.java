@@ -9,7 +9,8 @@ public enum BookingStateDto {
     PAST,
     FUTURE,
     WAITING,
-    REJECTED;
+    REJECTED,
+    UNKNOWN;
 
     public static BookingStateDto fromString(String str) {
         try {

@@ -12,9 +12,7 @@ import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import javax.validation.*;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,16 +75,5 @@ public class UserServiceImpl implements UserService {
                     String msg = String.format("Пользователь ID=%d не найден", userId);
                     return new NotFoundException(msg, HttpStatus.NOT_FOUND);
                 });
-    }
-
-    private boolean validateUserEmail(UserDto userDto) {
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
-        Set<ConstraintViolation<UserDto>> violations = validator.validate(userDto);
-
-        if (!violations.isEmpty()) {
-            return false;
-        }
-        return true;
     }
 }

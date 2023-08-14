@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
@@ -13,6 +15,8 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -33,6 +37,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final CommentService commentService;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Override
     public ItemDto create(int userId, ItemDto itemDto) {
@@ -41,8 +46,16 @@ public class ItemServiceImpl implements ItemService {
                     String msg = String.format("User with ID=%d not found.", itemDto.getOwnerId());
                     return new NotFoundException(msg, HttpStatus.NOT_FOUND);
                 });
+        ItemRequest itemRequest = null;
+        if (itemDto.getRequestId() != null) {
+            itemRequest = itemRequestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> {
+                        String msg = String.format("Item with ID=%d not found.", itemDto.getRequestId());
+                        return new NotFoundException(msg, HttpStatus.NOT_FOUND);
+                    });
+        }
         itemDto.setOwnerId(userId);
-        Item item = ItemMapper.toItem(itemDto, owner);
+        Item item = ItemMapper.toItem(itemDto, owner, itemRequest);
         Item saved = itemRepository.save(item);
         return ItemMapper.toItemDto(saved);
     }
@@ -67,19 +80,21 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getItemsByUser(int userId) {
-        Map<Integer, Item> idToItem = getItemsMapFetchedWithBookings(userId);
+    public List<ItemDto> getItemsByUser(int userId, int from, int size) {
+        Pageable pageable = calculatePageable(from, size);
+        Map<Integer, Item> idToItem = getItemsMapFetchedWithBookings(userId, pageable);
         Map<Integer, List<CommentResponse>> itemIdToComments =
                 commentService.getItemIdToComments(idToItem.keySet());
         return createItemDtos(idToItem, itemIdToComments);
     }
 
     @Override
-    public List<ItemDto> search(String text) {
+    public List<ItemDto> search(String text, int from, int size) {
+        Pageable pageable = calculatePageable(from, size);
         if (text == null || text.isEmpty() || text.isBlank()) {
             return Collections.emptyList();
         }
-        List<Item> items = itemRepository.search(text);
+        List<Item> items = itemRepository.search(text, pageable);
         return items.stream()
                 .filter(Item::getAvailable)
                 .map(ItemMapper::toItemDto)
@@ -145,8 +160,8 @@ public class ItemServiceImpl implements ItemService {
         dto.setComments(comments);
     }
 
-    private Map<Integer, Item> getItemsMapFetchedWithBookings(Integer userId) {
-        return itemRepository.findAllByOwnerIdFetchBookings(userId)
+    private Map<Integer, Item> getItemsMapFetchedWithBookings(Integer userId, Pageable pageable) {
+        return itemRepository.findAllByOwnerIdFetchBookings(userId, pageable)
                 .stream()
                 .collect(Collectors.toMap(Item::getId, Function.identity()));
     }
@@ -215,4 +230,9 @@ public class ItemServiceImpl implements ItemService {
                 || b.getStatus().equals(BookingStatus.APPROVED));
     }
 
+    private Pageable calculatePageable(int id, int itemCount) {
+        int itemsPerPage = itemCount;
+        int pageNumber = (int) Math.floor((double) id / itemsPerPage);
+        return PageRequest.of(pageNumber, itemsPerPage);
+    }
 }

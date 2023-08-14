@@ -39,7 +39,7 @@ public class CommentMapper {
                 .build();
     }
 
-    private void checkUserBookedItem(CommentRequest dto, Item item) {
+    public void checkUserBookedItem(CommentRequest dto, Item item) {
         Optional<Booking> booking = item.getBookings().stream()
                 .filter(hasUserBookedItem(dto.getUserId()))
                 .findFirst();

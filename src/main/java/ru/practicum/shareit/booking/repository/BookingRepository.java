@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.repository;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,23 +15,23 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     @Query("select b from Booking b join fetch b.booker bkr join fetch b.item i where b.id =:bookingId")
     Optional<Booking> findBookingByIdItemFetched(@Param("bookingId") Integer bookingId);
 
-    List<Booking> findAllByBookerIdOrderByStartDesc(Integer bookerId);
+    List<Booking> findAllByBookerIdOrderByStartDesc(Integer bookerId, Pageable pageable);
 
-    List<Booking> findAllByItemOwnerIdOrderByStartDesc(Integer bookerId);
+    List<Booking> findAllByItemOwnerIdOrderByStartDesc(Integer bookerId, Pageable pageable);
 
-    List<Booking> findAllByBookerIdAndStatusOrderByStartDesc(Integer bookerId, BookingStatus status);
+    List<Booking> findAllByBookerIdAndStatusOrderByStartDesc(Integer bookerId, BookingStatus status, Pageable pageable);
 
-    List<Booking> findAllByBookerIdAndStartAfterOrderByStartDesc(Integer bookerId, LocalDateTime start);
+    List<Booking> findAllByBookerIdAndStartAfterOrderByStartDesc(Integer bookerId, LocalDateTime start, Pageable pageable);
 
-    List<Booking> findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(Integer bookerId, LocalDateTime start, LocalDateTime end);
+    List<Booking> findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(Integer bookerId, LocalDateTime start, LocalDateTime end, Pageable pageable);
 
-    List<Booking> findAllByItemOwnerIdAndStatusOrderByStartDesc(Integer ownerId, BookingStatus status);
+    List<Booking> findAllByItemOwnerIdAndStatusOrderByStartDesc(Integer ownerId, BookingStatus status, Pageable pageable);
 
-    List<Booking> findAllByItemOwnerIdAndStartAfterOrderByStartDesc(Integer ownerId, LocalDateTime start);
+    List<Booking> findAllByItemOwnerIdAndStartAfterOrderByStartDesc(Integer ownerId, LocalDateTime start, Pageable pageable);
 
-    List<Booking> findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(Integer ownerId, LocalDateTime start, LocalDateTime end);
+    List<Booking> findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(Integer ownerId, LocalDateTime start, LocalDateTime end, Pageable pageable);
 
-    List<Booking> findAllByBookerIdAndEndBeforeOrderByStartDesc(Integer bookerId, LocalDateTime end);
+    List<Booking> findAllByBookerIdAndEndBeforeOrderByStartDesc(Integer bookerId, LocalDateTime end, Pageable pageable);
 
-    List<Booking> findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(Integer ownerId, LocalDateTime end);
+    List<Booking> findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(Integer ownerId, LocalDateTime end, Pageable pageable);
 }
