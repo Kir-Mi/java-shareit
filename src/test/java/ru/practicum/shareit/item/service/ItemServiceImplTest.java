@@ -74,6 +74,7 @@ class ItemServiceImplTest {
                 .bookings(new ArrayList<>())
                 .build();
     }
+
     @Test
     void create_ValidData_ReturnsCreatedItemDto() {
         User owner = user1;
