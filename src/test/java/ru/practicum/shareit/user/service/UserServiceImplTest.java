@@ -75,6 +75,7 @@ class UserServiceImplTest {
         assertEquals(user1.getName(), createdUser.getName());
         assertEquals(user1.getEmail(), createdUser.getEmail());
 
+
         verify(userRepository, times(1)).save(user1);
     }
 
