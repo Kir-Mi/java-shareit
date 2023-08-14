@@ -39,7 +39,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    public void FindAll_returnAllUsers() {
+    public void findAll_returnAllUsers() {
         List<User> users = Arrays.asList(user1, user2);
         when(userRepository.findAll()).thenReturn(users);
 
